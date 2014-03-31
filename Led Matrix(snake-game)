@@ -1,0 +1,233 @@
+/*
+this is a game named trucks and cars developed on arduino uno board 
+and displayed using a LCD display (16*2)
+author:akhil@hector, om@Ethcelon
+design: Suraj, Saiteja
+Library used: LiquidCrystal.h
+game played with buttons as well as pot(potentiometer)
+*/
+// the glyphs which are written down are found on the net so
+//one can make any custom shapes of their desire and need.
+
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(12,7, 11, 5, 4, 3, 2);
+//---------------
+const int buttonpin1= 10;
+const int buttonpin2= 6;
+int buttonstate1;
+int buttonstate2;
+const int randomseedpin= 0;
+const int potpin = A0;            
+const int maxstepdur = 300; 
+const int minstepdur = 150; 
+const int n = 6;                 
+byte images[n][8] = {            
+  // 1: car up
+  { 
+    B00000,
+    B01110,
+    B11111,
+    B01010,
+    B00000,
+    B00000,
+    B00000,
+    B00000  }
+  // 2: car down
+  ,{
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B01110,
+    B11111,
+    B01010,
+    B00000  }
+  // 3: truck up
+  ,{
+    B00000,
+    B11110,
+    B11111,
+    B01010,
+    B00000,
+    B00000,
+    B00000,
+    B00000  }
+  // 4: truck down
+  ,{
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B11110,
+    B11111,
+    B01010,
+    B00000  }
+  // 5: crash up
+  ,{
+    B10101,
+    B01110,
+    B01110,
+    B10101,
+    B00000,
+    B00000,
+    B00000,
+    B00000  }
+  // 6: crash down
+  ,{
+    B00000,
+    B00000,
+    B00000,
+    B10101,
+    B01110,
+    B01110,
+    B10101,
+    B00000  }
+};
+
+const int totalpos = 4;
+const char blank=32;
+char car2images[totalpos][2] = {
+  {
+    1,blank  }
+  ,{
+    2,blank  }
+  ,{
+    blank,1  }
+  ,{
+    blank,2  }
+};
+char truck2images[totalpos][2] = {
+  {
+    3,blank  }
+  ,{
+    4,blank  }
+  ,{
+    blank,3  }
+  ,{
+    blank,4  }
+};
+char crash2images[totalpos][2] = {
+  {
+    5,blank  }
+  ,{
+    6,blank  }
+  ,{
+    blank,5  }
+  ,{
+    blank,6  }
+};
+
+const int roadlen = 15; // LCD width (not counting our car)
+int road[roadlen];  // positions of other cars
+char line[2+roadlen]; 
+int road_index;
+int carpos;
+const int maxroadpos = 3*totalpos;
+int step_duration;  // Off-the-grid position means empty column, so maxroadpos
+// determines the probability of a car in a column
+
+int crash; 
+unsigned int crashtime; 
+const char *one="hehahaha,";         // any text can be given
+const char *two="play safe ";
+const int Delay = 2000;
+
+void setup()
+{
+  pinMode(buttonpin1,INPUT);
+  pinMode(buttonpin2,INPUT);
+  buttonstate1=digitalRead(buttonpin1);
+  buttonstate2=digitalRead(buttonpin2);
+  crash = crashtime = road_index = 0;
+  step_duration = maxstepdur;
+  line[1+roadlen] = '\0'; 
+  randomSeed(analogRead(randomseedpin));
+  for (int i=0; i<n; i++) {            
+    lcd.createChar(i+1,images[i]);
+  }
+  for (int i=0; i<roadlen; i++) 
+  {
+    road[i]=-1;
+  }
+  lcd.begin(16,2);
+  roadsetup();
+  control();
+  lcd.setCursor(2,0);
+  lcd.print(one);
+  lcd.setCursor(4,2);
+  lcd.print(two);
+  delay(Delay);
+}
+
+void loop() {
+  unsigned long now = millis()-Delay;
+  if (!crash) {
+    control();
+    //carpos==road[road_index];      // this enables the god mode
+    crash = (carpos==road[road_index]);
+  }
+  if (crash)
+  {
+    if (!crashtime) 
+    {
+      crashtime=now;
+      roadsetup();
+      lcd.setCursor(2,0);
+      lcd.print("Crashed after");
+      lcd.setCursor(2,1);
+      lcd.print(now/1000);
+      lcd.print(" seconds.");
+      lcd.print("");
+    }
+  }
+  else 
+  {
+    int prev_pos = road[(road_index-1)%roadlen];
+    int this_pos = random(maxroadpos);
+    while (abs(this_pos-prev_pos)<2) { 
+      this_pos = random(maxroadpos);
+    }
+    road[road_index] = this_pos;
+    road_index = (road_index+1)%roadlen;
+    roadsetup();
+    delay(step_duration);
+    if (step_duration>minstepdur) {
+      step_duration--; // go faster
+    }
+  }
+}
+void control() 
+{
+  int value;
+  value=analogRead(potpin);
+  carpos = map(value,0,800,0,totalpos);
+// buttonstate1=digitalRead(buttonpin1);
+  //buttonstate2=digitalRead(buttonpin2);
+  /*if(buttonstate1==HIGH)
+  {
+    carpos=digitalRead(buttonpin1);
+   digitalWrite(buttonpin1,HIGH);
+  }
+  else if(buttonstate2==HIGH)
+  {
+    carpos=digitalRead(buttonpin2);
+   digitalWrite(buttonpin2,HIGH);
+  } */   
+}
+
+void roadsetup() {
+  for (int i=0; i<2; i++) {
+    if (crash) {
+      line[0]=crash2images[carpos][i];
+    }
+    else {
+      line[0]=car2images[carpos][i];
+    }
+    for (int j=0; j<roadlen; j++) {
+      int pos = road[(j+road_index)%roadlen];
+      line[j+1] = pos>=0 && pos<totalpos ? truck2images[pos][i] : blank;
+    }
+    lcd.setCursor(0,i);
+    lcd.print(line);
+  }
+}
