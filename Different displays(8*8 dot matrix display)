@@ -1,0 +1,114 @@
+/*author:akhil@hector, om@Ethcelon
+design: Suraj, Saiteja
+this is another project which is used to generate different patterns on
+the Dot matrix display so they include that of ambulance etc
+One needs to adjust their SHCP STCP and DS pins according to their connections
+in our case they were 2,3,4 digital pins
+*/
+int randNum = 1;
+
+void setup() {
+  pinMode(2, OUTPUT); //DS (Serial data input)
+  pinMode(3, OUTPUT); //STCP (Storage register clock input)
+  pinMode(4, OUTPUT); //SHCP (Shift register clock input)
+
+  digitalWrite(2,LOW);     
+  digitalWrite(3,LOW);     
+  digitalWrite(4,LOW);  
+}
+
+void loop() {
+  for (int i = 1; i <= 15; i++){//---------->
+      shift(1,30);
+      shift(2,30);
+      shift(4,30);
+      shift(8,30);
+      shift(16,30);
+      shift(32,30);
+      shift(64,30);
+      shift(128,30);
+  }
+  
+  delay(100);
+  
+  for (int i = 1; i <= 25; i++) { //<<<<>>>>
+      shift(24,90);
+      shift(36,90);
+      shift(66,90);
+      shift(129,90);
+      shift(0,90);
+  }
+    
+    delay(100);
+    
+  for (int i = 1; i <=15; i++) { //nightrider
+    shift(3,60);
+    shift(6,60);
+    shift(12,60);
+    shift(24,60);
+    shift(48,60);
+    shift(96,60);
+    shift(192,60);
+    shift(96,60);
+    shift(48,60);
+    shift(24,60);
+    shift(12,60);
+    shift(6,60);
+    shift(3,60);
+  }
+  
+  delay(100);
+  
+  for (int i = 1; i <= 50; i++) { //ambulance
+    shift(65,250);
+    shift(130,250);
+  }
+  
+  for (int i = 1; i <= 30; i++) { //blink everthing
+     shift(255,100);
+     shift(0,200);
+  }
+  
+  delay(100);
+  
+  for (int i=1; i<= 400; i++) {
+    randNum = random(1, 8);
+    rnd(randNum);
+  }
+}
+
+void shift(int pin, int pindelay) {
+  shiftOut(2,4,MSBFIRST,pin);  //shift out counter value to 74HC595     
+  digitalWrite(3,HIGH);        //shift out data from 8-bit Storage      
+  delay(pindelay);
+  digitalWrite(3,LOW);         //Register to 3-State Output
+}
+
+void rnd(int pin) {
+  switch (pin) {
+    case 1:
+      shift(1,45);
+      break;
+    case 2:
+      shift(2,45);
+      break;
+    case 3:
+      shift(4,45);
+      break;
+    case 4:
+      shift(8,45);
+      break;
+    case 5:
+      shift(16,45);
+      break;
+    case 6:
+      shift(32,45);
+      break;
+    case 7:
+      shift(64,45);
+      break;
+    case 8:
+      shift(128,45);
+      break;
+  }
+}
