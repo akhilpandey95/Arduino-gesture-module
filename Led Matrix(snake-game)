@@ -1,0 +1,202 @@
+/*
+this is a game named trucks and cars developed on arduino uno board 
+and displayed using a LCD display (16*2)
+author:akhil@hector, om@Ethcelon
+design: Suraj, Saiteja
+Library used: LiquidCrystal.h
+game played with buttons as well as pot(potentiometer)
+*/
+// the glyphs which are written down are found on the net so
+//one can make any custom shapes of their desire and need.
+
+#include<LiquidCrystal.h>
+const int buttonpin1= A0;
+const int buttonpin2= A1;
+int buttonstate1=0;
+int buttonstate2=0;
+int score;
+int carposition=4;
+boolean crash;
+unsigned int crashtime;
+
+boolean newgame;
+byte G[n][8]={
+  // car up
+   { B00000,
+    B01110,
+    B11111,
+    B01010,
+    B00000,
+    B00000,
+    B00000,
+    B00000}
+//  car down
+   ,{B00000,
+    B00000,
+    B00000,
+    B00000,
+    B01110,
+    B11111,
+    B01010,
+    B00000}
+//  truck up
+   ,{B00000,
+    B11110,
+    B11111,
+    B01010,
+    B00000,
+    B00000,
+    B00000,
+    B00000}
+//  truck down
+  ,{B00000,
+    B00000,
+    B00000,
+    B00000,
+    B11110,
+    B11111,
+    B01010,
+    B00000}
+//  crash up
+  ,{B10101,
+    B01110,
+    B01110,
+    B10101,
+    B00000,
+    B00000,
+    B00000,
+    B00000}
+//  crash down
+   ,{B00000,
+    B00000,
+    B00000,
+    B10101,
+    B01110,
+    B01110,
+    B10101,
+    B00000}
+};
+char blank=32;
+const int roadlen= 15;
+int Road[roadlen];
+char line[roadlen+2];
+int roadpos;
+int car_pos;
+
+char carG[n][2]={
+  {1,Blank},{2,blank),{blank,1},{blank,1}
+  };
+char truckG[n][2]={
+  {3,blank},{4,blank},{blank,3},{blank,4}
+  };
+char crashG[n][2]={
+  {5,blank},{6,blank},{blank,5},{blank  
+
+
+
+
+LiquidCrystal Displcd(12,11,5,4,3,2);
+void setup()
+{    
+    lcd.begin(16,2);
+    pinMode(buttonpin1,OUTPUT);
+    pinMode(buttonpin2,OUTPUT);
+    for(int i=0;i<n;i++)
+    {
+        Displcd.createChar(i+1,G[i]);
+    }
+    for(int i=0;i<Roadlen   
+    newgame=true;
+}    
+void loop()
+{
+    if(newgame)
+    {
+    init();
+    }
+    if(crash==true)
+    {
+        displaygameover();
+        displaytime();
+    }
+    // delay(1500);   //------- a delay must be given    
+}
+void init()
+{
+    score=0;
+    crash=false;
+    crashtime=0;
+    Displcd.setCursor(1,0);
+    Displcd.print("The game is about to begin");
+    for(int i=3;i>0;i++)
+    {
+        Displcd.print(i);
+    }   
+    roadsetup();
+    control();
+}
+void displaygameover()
+{
+ byte armsDown[8] = {
+  0b00100,
+  0b01010,
+  0b00100,
+  0b00100,
+  0b01110,
+  0b10101,
+  0b00100,
+  0b01010
+};
+  byte armsUp[8] = {
+  0b00100,
+  0b01010,
+  0b00100,
+  0b10101,
+  0b01110,
+  0b00100,
+  0b00100,
+  0b01010
+};
+     Displcd.createChar(0,armsUp);
+     Displcd.createChar(1,armsDown);  
+     Displcd("the game is over");
+     Displcd.setCursor(4,1);
+     Displcd.write(byte[0]);
+     delay(300);
+     Displcd.setCursor(4,1);
+     Displcd.write(byte[1]);
+     delay(300);
+     newgame=false;
+}    
+void displaytime()
+{
+      Displcd.setCursor(8,2);
+      Displcd.print
+}
+void control()
+{
+    buttonstate1=digitalRead(buttonstate1);
+    buttonstate2=digitalRead(buttonstate2);
+   if(buttonstate1==HIGH &&
+}   
+void roadsetup()
+{
+    for(int i=0;i<2;i++)
+    {
+        if(crash)
+        {
+            line[0]=crashG[car_pos][i];
+        }
+         else
+        {
+             line[0]=carG[car_pos][i];
+        }
+        for(int j=0;j<roadlen;j++)
+    {
+        int pos=Road[(j+roadindex)%Roadlen];
+        line[j+1]=pos>0 && pos<carposition ? truckG[pos][i]:blank;    
+    }
+    Displcd.setCursor(0,i);
+    Displcd.print(line);
+    }
+}   
